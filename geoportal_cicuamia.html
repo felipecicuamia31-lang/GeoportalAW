@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Geoportal Profesional | Juan Felipe Cicuamia</title>
+
+  <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1TvjHfrOkn-Y9qPgFygvoLqsFKeaSrmeS">
+
+  <style>
+    :root {
+      /* Paleta Verde Oscuro HUD / Tech Dashboard */
+      --bg-dark: #030a06;
+      --bg-panel: #051209;
+      --bg-card: #081a0e;
+      --text-main: #e2f1e8;
+      --text-muted: #6b9b81;
+      --primary: #00ff88; /* Verde Neón / Láser */
+      --primary-hover: #00cc6a;
+      --primary-dim: rgba(0, 255, 136, 0.15);
+      --border-light: rgba(0, 255, 136, 0.3);
+      --border-glow: rgba(0, 255, 136, 0.6);
+      
+      /* Formas recuadradas */
+      --radius-sm: 2px;
+      --radius-md: 4px;
+      --sidebar-width: 280px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    
+    body {
+      margin: 0;
+      font-family: 'Consolas', 'Segoe UI', system-ui, sans-serif; /* Fuente más técnica */
+      color: var(--text-main);
+      background-color: var(--bg-dark);
+      /* Patrón de cuadrícula tipo SIG */
+      background-image: 
+        linear-gradient(rgba(0, 255, 136, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 136, 0.03) 1px, transparent 1px);
+      background-size: 30px 30px;
+      line-height: 1.6;
+      display: flex;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    
+    /* =========================================
+       SIDEBAR (Panel de Control Lateral)
+       ========================================= */
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      width: var(--sidebar-width);
+      background: rgba(3, 10, 6, 0.95);
+      border-right: 1px solid var(--border-light);
+      padding: 30px 20px;
+      display: flex;
+      flex-direction: column;
+      z-index: 1000;
+      box-shadow: 5px 0 30px rgba(0, 255, 136, 0.05);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 1px dashed var(--border-light);
+    }
+
+    .brand-logo {
+      width: 45px; height: 45px;
+      background: #fff;
+      display: grid; place-items: center;
+      border: 2px solid var(--primary);
+      border-radius: var(--radius-sm);
+    }
+
+    .brand-logo img { max-width: 90%; height: auto; }
+
+    .brand-text h1 {
+      margin: 0; font-size: 1.1rem; color: var(--primary);
+      text-transform: uppercase; letter-spacing: 2px;
+    }
+
+    .brand-text span {
+      font-size: 0.75rem; color: var(--text-muted);
+      display: block; text-transform: uppercase; letter-spacing: 1px;
+    }
+
+    .nav-links { display: flex; flex-direction: column; gap: 8px; }
+
+    .nav-links a {
+      padding: 12px 15px;
+      border: 1px solid transparent;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      transition: all 0.2s ease;
+      display: flex; align-items: center; gap: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-radius: var(--radius-sm);
+    }
+
+    .nav-links a::before {
+      content: '>';
+      color: transparent;
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--primary);
+      background: var(--primary-dim);
+      border: 1px solid var(--border-light);
+      box-shadow: inset 0 0 10px var(--primary-dim);
+    }
+
+    .nav-links a:hover::before { color: var(--primary); }
+
+    /* =========================================
+       CONTENIDO PRINCIPAL
+       ========================================= */
+    .main-content {
+      margin-left: var(--sidebar-width);
+      padding: 40px 60px;
+      width: calc(100% - var(--sidebar-width));
+    }
+
+    .section {
+      padding: 50px 0 40px;
+      border-bottom: 1px dotted var(--border-light);
+    }
+
+    .section-header { margin-bottom: 30px; }
+
+    .section-header h2 {
+      font-size: 2rem; margin: 0 0 10px;
+      color: #fff; text-transform: uppercase;
+      letter-spacing: 2px;
+      display: flex; align-items: center; gap: 15px;
+    }
+
+    .section-header h2::before {
+      content: ''; display: inline-block;
+      width: 15px; height: 15px;
+      background: var(--primary);
+      box-shadow: 0 0 10px var(--primary);
+    }
+
+    .section-header p {
+      color: var(--text-muted); max-width: 800px;
+      font-size: 1rem; font-family: 'Segoe UI', sans-serif;
+    }
+
+    /* PANELES (Efecto HUD Recuadrado) */
+    .panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-light);
+      position: relative;
+      margin-bottom: 30px;
+      transition: all 0.3s;
+    }
+
+    /* Acentos en las esquinas para look tecnológico */
+    .panel::before, .panel::after {
+      content: ''; position: absolute; width: 20px; height: 20px;
+      border: 2px solid var(--primary); pointer-events: none;
+      transition: all 0.3s;
+    }
+    .panel::before { top: -2px; left: -2px; border-right: none; border-bottom: none; }
+    .panel::after { bottom: -2px; right: -2px; border-left: none; border-top: none; }
+
+    .panel:hover {
+      box-shadow: 0 0 25px var(--primary-dim);
+      border-color: var(--border-glow);
+    }
+    .panel:hover::before, .panel:hover::after {
+      width: 30px; height: 30px; box-shadow: 0 0 10px var(--primary-dim);
+    }
+
+    .grid-3 {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;
+    }
+
+    /* TARJETAS DE DESCARGA */
+    .download-card {
+      background: var(--bg-card);
+      padding: 30px 20px;
+      border: 1px solid var(--border-light);
+      text-align: center;
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+    
+    .download-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.5), inset 0 0 15px var(--primary-dim);
+      border-color: var(--primary);
+    }
+
+    .download-card h4 {
+      margin: 0 0 20px; font-size: 1.1rem; color: var(--primary);
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+
+    .btn-group { display: flex; flex-direction: column; gap: 10px; }
+
+    /* =========================================
+       BOTONES RECICLADOS Y CON EFECTOS
+       ========================================= */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 12px 20px;
+      background: transparent;
+      color: var(--text-main);
+      border: 1px solid var(--border-light);
+      font-family: 'Consolas', monospace;
+      font-size: 0.9rem; font-weight: bold;
+      text-transform: uppercase; letter-spacing: 1px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: var(--radius-sm);
+    }
+
+    /* Efecto Hover */
+    .btn:hover, .btn.active {
+      background: var(--primary-dim);
+      border-color: var(--primary);
+      color: var(--primary);
+      box-shadow: 0 0 15px var(--primary-dim);
+    }
+
+    /* EFECTO CLIC (Físico) */
+    .btn:active {
+      transform: scale(0.95);
+      box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8);
+      background: var(--primary-hover);
+      color: #000;
+    }
+
+    .btn-primary {
+      background: var(--primary-dim);
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary);
+      color: #000;
+      box-shadow: 0 0 20px var(--border-glow);
+    }
+
+    /* =========================================
+       MAPAS E IFRAMES (Interactivo)
+       ========================================= */
+    .map-container {
+      width: 100%; height: 650px;
+      background: #020604;
+      position: relative;
+      cursor: crosshair; /* Cursor de mira para los mapas */
+    }
+
+    iframe { width: 100%; height: 100%; border: none; }
+
+    .wms-image-wrapper {
+      padding: 20px; text-align: center;
+      background: var(--bg-panel);
+    }
+
+    #wms-image {
+      max-width: 100%; height: auto;
+      border: 1px solid var(--border-light);
+      transition: opacity 0.3s;
+    }
+
+    .toolbar {
+      padding: 15px 20px; display: flex; gap: 10px; flex-wrap: wrap;
+      background: #040c07; border-bottom: 1px solid var(--border-light);
+    }
+
+    /* ESTILOS NATIVOS DE OPENLAYERS (HUD MOD) */
+    .custom-mouse-position {
+      position: absolute; bottom: 20px; right: 20px;
+      background: rgba(3, 10, 6, 0.85);
+      padding: 8px 12px;
+      border: 1px solid var(--primary);
+      font-family: 'Consolas', monospace; font-size: 13px;
+      color: var(--primary); z-index: 1;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 0 10px var(--primary-dim);
+    }
+
+    /* Botones de zoom OpenLayers */
+    .ol-zoom { top: 20px !important; left: 20px !important; }
+    .ol-zoom .ol-zoom-in, .ol-zoom .ol-zoom-out {
+      background-color: rgba(3, 10, 6, 0.9) !important;
+      color: var(--primary) !important;
+      border: 1px solid var(--primary) !important;
+      border-radius: 0 !important;
+      font-family: 'Consolas', monospace !important;
+      transition: all 0.2s !important;
+    }
+    .ol-zoom .ol-zoom-in:hover, .ol-zoom .ol-zoom-out:hover {
+      background-color: var(--primary) !important;
+      color: #000 !important;
+      box-shadow: 0 0 10px var(--primary) !important;
+    }
+    .ol-scale-line { background: rgba(3, 10, 6, 0.8) !important; border: 1px solid var(--primary); }
+    .ol-scale-line-inner { color: var(--primary) !important; border-color: var(--primary) !important; }
+
+    /* =========================================
+       CONTACTO
+       ========================================= */
+    .contact-card {
+      background: linear-gradient(45deg, var(--bg-panel) 0%, #051a0e 100%);
+      padding: 40px; border: 1px solid var(--primary);
+      text-align: center; position: relative;
+      box-shadow: inset 0 0 30px var(--primary-dim);
+    }
+
+    .contact-card h3 { font-size: 2rem; margin: 0 0 5px; color: #fff; text-transform: uppercase; }
+    .contact-card p { color: var(--primary); font-weight: bold; letter-spacing: 2px; }
+    .contact-card .bio { color: var(--text-muted); max-width: 600px; margin: 0 auto 30px; font-family: 'Segoe UI', sans-serif;}
+
+    footer { text-align: center; padding: 30px 0; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;}
+
+    /* Diseño Responsivo */
+    @media (max-width: 992px) {
+      body { flex-direction: column; }
+      .sidebar { position: relative; width: 100%; border-right: none; border-bottom: 1px solid var(--border-light); padding: 15px; }
+      .main-content { margin-left: 0; width: 100%; padding: 20px; }
+      .nav-links { flex-direction: row; flex-wrap: wrap; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-logo">
+        <img src="https://www.uasb.edu.bo/wp-content/uploads/2020/10/LOGO-UASB-2.jpg" alt="Logo UASB" />
+      </div>
+      <div class="brand-text">
+        <h1>Geoportal SIG</h1>
+        <span>Conservación Casanare</span>
+      </div>
+    </div>
+    <nav class="nav-links">
+      <a href="#cv">Curriculum Vitae</a>
+      <a href="#wms">Visor WMS</a>
+      <a href="#wfs">Data Vectorial WFS</a>
+      <a href="#openlayers">Geovisor OpenLayers</a>
+      <a href="#arcgis">ArcGIS Online</a>
+      <a href="#qgis">QGIS Cloud</a>
+      <a href="#contacto">Contacto</a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+
+    <section id="cv" class="section">
+      <div class="section-header">
+        <h2>Curriculum Vitae</h2>
+        <p>Perfil académico y profesional del especialista SIG.</p>
+      </div>
+      <div class="panel">
+        <div class="map-container" style="height: 700px;">
+          <iframe src="https://drive.google.com/file/d/1ZESJOp_8pktrL_u_yg9mrHuCTUldnQbQ/preview" title="Hoja de vida"></iframe>
+        </div>
+      </div>
+    </section>
+
+    <section id="wms" class="section">
+      <div class="section-header">
+        <h2>Visor de Capas WMS</h2>
+        <p>Monitoreo estático de capas desde el servidor de IDESINDE.</p>
+      </div>
+      <div class="panel">
+        <div class="toolbar" id="wms-buttons">
+          <button class="btn active" onclick="changeWMS('https://geoserver.idesinde.com:8443/geoserver/cicuamia/wms?service=WMS&version=1.1.0&request=GetMap&layers=cicuamia:Composicion_cicuamia&bbox=-73.274,-69.74,6.68&width=768&height=556&srs=EPSG:4326&styles=&format=image/png', this)">[ Composición General ]</button>
+          <button class="btn" onclick="changeWMS('https://geoserver.idesinde.com:8443/geoserver/cicuamia/wms?service=WMS&version=1.1.0&request=GetMap&layers=cicuamia:Vias&bbox=-73.27,4.13,-69.74,6.68&width=768&height=556&srs=EPSG:4326&styles=&format=image/png', this)">[ Vías ]</button>
+          <button class="btn" onclick="changeWMS('https://geoserver.idesinde.com:8443/geoserver/cicuamia/wms?service=WMS&version=1.1.0&request=GetMap&layers=cicuamia:Zurbana&bbox=-73.27,4.13,-69.74,6.68&width=768&height=556&srs=EPSG:4326&styles=&format=image/png', this)">[ Zonas Urbanas ]</button>
+          <button class="btn" onclick="changeWMS('https://geoserver.idesinde.com:8443/geoserver/cicuamia/wms?service=WMS&version=1.1.0&request=GetMap&layers=cicuamia:Predios&bbox=-73.27,4.13,-69.74,6.68&width=768&height=556&srs=EPSG:4326&styles=&format=image/png', this)">[ Predios ]</button>
+        </div>
+        <div class="wms-image-wrapper">
+          <img id="wms-image" src="https://geoserver.idesinde.com:8443/geoserver/cicuamia/wms?service=WMS&version=1.1.0&request=GetMap&layers=cicuamia:Composicion_cicuamia&bbox=-73.27,4.13,-69.74,6.68&width=768&height=556&srs=EPSG:4326&styles=&format=image/png" alt="Mapa WMS GeoServer">
+        </div>
+      </div>
+    </section>
+
+    <section id="wfs" class="section">
+      <div class="section-header">
+        <h2>Extracción Vectorial WFS</h2>
+        <p>Hub de descarga en formatos estructurados JSON, KML y GML.</p>
+      </div>
+      <div class="grid-3">
+        <div class="download-card">
+          <h4>Vías de Comunicación</h4>
+          <div class="btn-group">
+            <a href="https://geoserver.idesinde.com:8443/geoserver/cicuamia/wfs?service=WFS&version=1.1.0&request=GetFeature&typeName=cicuamia:Vias&outputFormat=application/json" target="_blank" class="btn">JSON</a>
+            <a href="https://geoserver.idesinde.com:8443/geoserver/cicuamia/wfs?service=WFS&version=1.1.0&request=GetFeature&typeName=cicuamia:Vias&outputFormat=KML" target="_blank" class="btn">KML</a>
+            <a href="https://geoserver.idesinde.com:8443/geoserver/cicuamia/wfs?service=WFS&version=1.1.0&request=GetFeature&typeName=cicuamia:Vias&outputFormat=GML3" target="_blank" class="btn">GML</a>
+          </div>
+        </div>
+        <div class="download-card">
+          <h4>Polígonos Urbanos</h4>
+          <div class="btn-group">
+            <a href="https://geoserver.idesinde.com:8443/geoserver/cicuamia/wfs?service=WFS&version=1.1.0&request=GetFeature&typeName=cicuamia:Zurbana&outputFormat=application/json" target="_blank" class="btn">JSON</a>
+            <a href="https://geoserver.idesinde.com:8443/geoserver/cicuamia/wfs?service=WFS&version=1.1.0&request=GetFeature&typeName=cicuamia:Zurbana&outputFormat=KML" target="_blank" class="btn">KML</a>
+            <a href="https://geoserver.idesinde.com:8443/geoserver/cicuamia/wfs?service=WFS&version=1.1.0&request=GetFeature&typeName=cicuamia:Zurbana&outputFormat=GML3" target="_blank" class="btn">GML</a>
+          </div>
+        </div>
+        <div class="download-card">
+          <h4>Predios Vinculados</h4>
+          <div class="btn-group">
+            <a href="https://geoserver.idesinde.com:8443/geoserver/cicuamia/wfs?service=WFS&version=1.1.0&request=GetFeature&typeName=cicuamia:Predios&outputFormat=application/json" target="_blank" class="btn">JSON</a>
+            <a href="https://geoserver.idesinde.com:8443/geoserver/cicuamia/wfs?service=WFS&version=1.1.0&request=GetFeature&typeName=cicuamia:Predios&outputFormat=KML" target="_blank" class="btn">KML</a>
+            <a href="https://geoserver.idesinde.com:8443/geoserver/cicuamia/wfs?service=WFS&version=1.1.0&request=GetFeature&typeName=cicuamia:Predios&outputFormat=GML3" target="_blank" class="btn">GML</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="openlayers" class="section">
+      <div class="section-header">
+        <h2>Entorno OpenLayers</h2>
+        <p>Análisis interactivo con mapa base OSM y telemetría espacial en vivo.</p>
+      </div>
+      <div class="panel">
+        <div id="ol-map" class="map-container dark"></div>
+      </div>
+    </section>
+
+    <section id="arcgis" class="section">
+      <div class="section-header">
+        <h2>Portal ArcGIS Online</h2>
+        <p>Integración directa con la nube de Esri (Instant Apps Sidebar).</p>
+      </div>
+      <div class="panel">
+        <div class="map-container dark" style="height: 650px; overflow: hidden;">
+          <iframe 
+            src="https://cataruben.maps.arcgis.com/apps/instant/sidebar/index.html?appid=8b685b5546f04eedb4f366745e7f9059" 
+            style="border:0; width:100%; height:100%;" 
+            allowfullscreen 
+            title="Visor ArcGIS Online Proyecto Conservación Casanare">
+          </iframe>
+        </div>
+      </div>
+    </section>
+
+    <section id="qgis" class="section">
+      <div class="section-header">
+        <h2>Visor QGIS Cloud</h2>
+        <p>Infraestructura espacial desplegada desde QGIS Desktop.</p>
+      </div>
+      <div class="panel">
+        <div class="map-container">
+          <iframe src="https://qgiscloud.com/felipeacevedo/PracticaCloudcicuamia/" title="Mapa QGIS Cloud"></iframe>
+        </div>
+      </div>
+    </section>
+
+    <section id="contacto" class="section" style="border-bottom: none;">
+      <div class="contact-card">
+        <h3>Juan Felipe Cicuamia Acevedo</h3>
+        <p>INGENIERO AMBIENTAL | ESPECIALISTA SIG</p>
+        <div class="bio">
+          Estudiante de Maestría en Sistemas de Información Geográfica y Teledetección. 
+          Desarrollando soluciones territoriales y análisis espacial avanzado a través de tecnologías de la información.
+        </div>
+        
+        <a href="mailto:felipecicuamia31@gmail.com?subject=Contacto%20desde%20Portafolio%20SIG&body=Hola%20Juan%20Felipe,%20estoy%20interesado%20en%20contactarte..." class="btn btn-primary" style="padding: 15px 40px;">
+          > ENVIAR CORREO <
+        </a>
+      </div>
+    </section>
+
+    <footer>
+      <p>SYS // 2026 // GEOPORTAL PROFESIONAL - CASANARE // MAESTRÍA SIG Y TELEDETECCIÓN</p>
+    </footer>
+
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/ol@v10.4.0/dist/ol.js"></script>
+  
+  <script>
+    // -----------------------------------------------------
+    // 2. Lógica para cambiar imagen WMS
+    // -----------------------------------------------------
+    function changeWMS(url, btnElement) {
+      const img = document.getElementById('wms-image');
+      img.style.opacity = 0; // Efecto de parpadeo/transición
+      setTimeout(() => {
+        img.src = url;
+        img.style.opacity = 1;
+      }, 150);
+      
+      const buttons = document.querySelectorAll('#wms-buttons .btn');
+      buttons.forEach(btn => btn.classList.remove('active'));
+      btnElement.classList.add('active');
+    }
+
+    // -----------------------------------------------------
+    // 4. Lógica OpenLayers (HUD Style)
+    // -----------------------------------------------------
+    document.addEventListener('DOMContentLoaded', () => {
+      
+      const scaleLineControl = new ol.control.ScaleLine({
+        units: 'metric',
+        bar: true,
+        steps: 4,
+        text: true,
+        minWidth: 140
+      });
+
+      const mousePositionControl = new ol.control.MousePosition({
+        coordinateFormat: ol.coordinate.createStringXY(5),
+        projection: 'EPSG:4326',
+        className: 'custom-mouse-position',
+        undefinedHTML: 'SYS_STANDBY'
+      });
+
+      const baseLayer = new ol.layer.Tile({
+        source: new ol.source.OSM()
+      });
+
+      const wmsLayer = new ol.layer.Tile({
+        source: new ol.source.TileWMS({
+          url: 'https://geoserver.idesinde.com:8443/geoserver/cicuamia/wms',
+          params: {
+            'LAYERS': 'cicuamia:Composicion_cicuamia',
+            'TILED': true,
+            'FORMAT': 'image/png',
+            'TRANSPARENT': true
+          },
+          serverType: 'geoserver'
+        })
+      });
+
+      const map = new ol.Map({
+        target: 'ol-map',
+        controls: ol.control.defaults.defaults().extend([
+          scaleLineControl, 
+          mousePositionControl
+        ]),
+        layers: [baseLayer, wmsLayer],
+        view: new ol.View({
+          center: ol.proj.fromLonLat([-71.5, 5.2]), 
+          zoom: 7
+        })
+      });
+    });
+  </script>
+</body>
+</html>
